@@ -28,6 +28,10 @@ It wraps `fetch`/`XHR` and reads three polled endpoints under `CacheSite/EvolveC
 
 Initial loads are full; later polls are deltas, merged by agent / contact id.
 
+## Refresh
+
+Data is live: the RingCentral page polls roughly every 10 seconds and the board repaints on each response. Timers (time in state, queue wait) tick every second between polls. If no data arrives for `reloadIfStaleMin` minutes (default 5) the page reloads itself, which recovers from a dropped connection or sleeping tab. An expired RingCentral login will still need someone to sign in again.
+
 ## Configuration
 
 Everything is in the `CONFIG` block at the top of the script. The state mappings were inferred from live data and should be checked with **D**:

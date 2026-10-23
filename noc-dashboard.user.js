@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Brite Contact Center Wallboard (Hali)
 // @namespace    brite-noc
-// @version      0.1.0
+// @version      0.1.1
 // @description  Full-screen contact-center wallboard overlay for RingCentral Contact Center (NICE CXone) My Dashboard, styled with the Hali design language.
 // @match        https://*.nice-incontact.com/mydashboard*
 // @run-at       document-start
@@ -40,6 +40,10 @@
 
     // Time in state (seconds) before an agent row is highlighted
     stateWarnSec: { 'Unavailable': 900, 'Available': 1800, 'ACW': 300 },
+
+    // The page polls RingCentral itself (about every 10s). If no data arrives for this long
+    // (expired session, sleeping tab, dropped connection) reload the page. 0 = never reload.
+    reloadIfStaleMin: 5,
 
     scroll: { pxPerSecond: 12, topPauseMs: 1200, bottomPauseMs: 1800, resetStepPx: 10 },
   };
@@ -285,7 +289,7 @@
       <div class="stage" id="stage">
         <div class="hdr">
           <div class="brand"><img src="${LOGO}" alt="Brite">
-            <div><h1>Contact Center</h1><div class="sub">Brite · RingCentral Contact Center live wallboard</div></div></div>
+            <div><h1>Contact Center</h1><div class="sub">RingCentral Dashboard</div></div></div>
           <div class="pill" id="sync"><i></i><span>Waiting for data…</span></div>
         </div>
         <div class="grid" style="grid-template-columns:1fr 1.15fr;grid-template-rows:1fr .8fr 1.3fr">
@@ -359,6 +363,14 @@
   function schedule() { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; render(); }); }
   // Durations tick between polls, so repaint once a second
   setInterval(() => { if (ui) render(); }, 1000);
+
+  // Watchdog: a wallboard nobody is watching should recover on its own
+  const bootedAt = Date.now();
+  setInterval(() => {
+    if (!CONFIG.reloadIfStaleMin) return;
+    const quietFor = Date.now() - (syncedAt ? syncedAt.getTime() : bootedAt);
+    if (quietFor > CONFIG.reloadIfStaleMin * 60000) location.reload();
+  }, 30000);
 
   /* ======================================================================
    * Auto-scroll (one loop per list, started once)
