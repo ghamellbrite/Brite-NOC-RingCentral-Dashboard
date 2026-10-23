@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         Brite Contact Center Wallboard (Hali)
 // @namespace    brite-noc
-// @version      0.1.2
+// @version      0.1.3
 // @description  Full-screen contact-center wallboard overlay for RingCentral Contact Center (NICE CXone) My Dashboard, styled with the Hali design language.
 // @match        https://*.nice-incontact.com/mydashboard*
 // @run-at       document-start
 // @grant        none
 // @noframes
+// @homepageURL  https://github.com/ghamellbrite/Brite-NOC-RingCentral-Dashboard
+// @updateURL    https://raw.githubusercontent.com/ghamellbrite/Brite-NOC-RingCentral-Dashboard/main/noc-dashboard.user.js
+// @downloadURL  https://raw.githubusercontent.com/ghamellbrite/Brite-NOC-RingCentral-Dashboard/main/noc-dashboard.user.js
 // ==/UserScript==
 
 (() => {
