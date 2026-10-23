@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Brite Contact Center Wallboard (Hali)
 // @namespace    brite-noc
-// @version      0.1.1
+// @version      0.1.2
 // @description  Full-screen contact-center wallboard overlay for RingCentral Contact Center (NICE CXone) My Dashboard, styled with the Hali design language.
 // @match        https://*.nice-incontact.com/mydashboard*
 // @run-at       document-start
@@ -112,7 +112,7 @@
     }
     if (a.Available) return { group: 'Available', label: 'Available', color: C.success };
     const why = String(a.OutstateDescription || '').trim();
-    return { group: 'Unavailable', label: why ? `Unavailable: ${why}` : 'Unavailable', color: C.danger };
+    return { group: 'Unavailable', label: why || 'Unavailable', color: C.danger };
   }
 
   function view() {
@@ -244,7 +244,7 @@
     .qn{color:var(--subtlest)} .qt{color:var(--subtle);font-weight:500} .qrow b{font:600 24px var(--f)}
     .allclear{flex:1;display:grid;place-items:center;align-content:center;gap:12px;color:var(--success);font:600 22px var(--f)}
     .allclear svg{width:56px;height:56px;fill:var(--success)}
-    .trow{display:grid;grid-template-columns:44px 1.1fr 1.6fr auto;align-items:center;gap:16px;height:60px;padding:0 20px 0 12px;border-radius:8px;background:var(--overlay)}
+    .trow{display:grid;grid-template-columns:44px minmax(0,1.1fr) minmax(0,1.6fr) 120px;align-items:center;gap:16px;height:60px;padding:0 20px 0 12px;border-radius:8px;background:var(--overlay)}
     .trow.hot{box-shadow:inset 4px 0 0 var(--warning)}
     .trow.hot .t{color:var(--warning)}
     .av{width:36px;height:36px;border-radius:50%;background:var(--strong);display:grid;place-items:center;font:600 13px var(--f)}
@@ -252,7 +252,7 @@
     .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
     .state{display:flex;align-items:center;gap:12px;font:500 18px var(--f);color:var(--subtle);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .state i{width:12px;height:12px;border-radius:50%;flex:none}
-    .t{font:600 24px var(--f)}
+    .t{font:600 24px var(--f);text-align:right}
     .empty{color:var(--subtlest);font:500 16px var(--f);padding:12px}
     kbd,code{font:500 14px var(--f);background:var(--raised);padding:1px 6px;border-radius:4px;color:var(--text)}
     .hint{position:absolute;right:14px;bottom:8px;font:500 11px var(--f);color:var(--subtlest);opacity:.6}
