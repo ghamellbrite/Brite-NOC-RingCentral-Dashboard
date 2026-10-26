@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Brite Contact Center Wallboard (Hali)
 // @namespace    brite-noc
-// @version      0.1.3
+// @version      0.1.4
 // @description  Full-screen contact-center wallboard overlay for RingCentral Contact Center (NICE CXone) My Dashboard, styled with the Hali design language.
 // @match        https://*.nice-incontact.com/mydashboard*
 // @run-at       document-start
@@ -29,8 +29,11 @@
     loggedInLogStates: [1],
 
     // Agent is "on a contact" when Working=1. Outbound if OutboundSkill > 0, otherwise inbound.
-    // Contact states: 4 = waiting in queue (per observed data). Add more if your tenant differs.
-    queueWaitingStates: [4],
+    // A call is "waiting in queue" when it is inbound, no agent has it yet, and it is not in an
+    // active/ended state. Observed: Direction 1 = inbound, 2 = outbound; state 4 = active call
+    // (an agent already has it); 18 = ended.
+    inboundDirection: '1',
+    queueIgnoreStates: [4, 18],
 
     // Callback entry states
     callbackQueuedStates: [],       // still waiting to be called back
@@ -126,8 +129,11 @@
     const counts = { Available: 0, Unavailable: 0, Inbound: 0, Outbound: 0, ACW: 0 };
     rows.forEach(r => { counts[r.st.group]++; });
 
-    const waiting = [...store.contacts.values()].filter(c => CONFIG.queueWaitingStates.includes(c.CurrentContactState))
-      .map(c => ({ dur: c.Duration, out: String(c.Direction) === '1', skill: c.SkillNo })).sort((a, b) => b.dur - a.dur);
+    const waiting = [...store.contacts.values()].filter(c =>
+        String(c.Direction) === CONFIG.inboundDirection &&
+        !(c.AgentNo > 0) &&
+        !CONFIG.queueIgnoreStates.includes(c.CurrentContactState))
+      .map(c => ({ dur: c.Duration })).sort((a, b) => b.dur - a.dur);
 
     const cb = { queued: 0, done: 0, failed: 0 };
     for (const c of store.callbacks.values()) {
@@ -179,7 +185,7 @@
     const list = v.waiting.length
       ? `<div class="rows">${v.waiting.slice(0, 8).map((w, i) => {
           const c = w.dur >= CONFIG.queueAlertSec ? C.danger : w.dur >= CONFIG.queueWarnSec ? C.warning : C.brand;
-          return `<div class="qrow"><span class="qn">${i + 1}</span><span class="qt">${w.out ? 'Outbound' : 'Inbound'}</span><b style="color:${c}">${mmss(w.dur)}</b></div>`;
+          return `<div class="qrow"><span class="qn">${i + 1}</span><span class="qt">Inbound</span><b style="color:${c}">${mmss(w.dur)}</b></div>`;
         }).join('')}</div>`
       : `<div class="allclear"><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>No calls waiting</div>`;
     return `<div class="eyebrow">Calls waiting in queue</div>
@@ -359,6 +365,7 @@
         <tr><td>Agents · OutstateDescription</td><td>${esc(tally(A, a => a.OutstateDescription || '(none)'))}</td></tr>
         <tr><td>Contacts · CurrentContactState</td><td>${esc(tally(Q, c => c.CurrentContactState))}</td></tr>
         <tr><td>Contacts · Direction</td><td>${esc(tally(Q, c => c.Direction))}</td></tr>
+        <tr><td>Contacts · agent assigned</td><td>${esc(tally(Q, c => c.AgentNo > 0))}</td></tr>
         <tr><td>Callbacks · CurrentContactState (StateDescription)</td><td>${esc(tally(B, c => `${c.CurrentContactState} (${c.StateDescription})`))}</td></tr></table>
       <p style="color:#A2AABA">Agent names are never shown here. Edit <code>CONFIG</code> in the script to remap states.</p>`;
   }

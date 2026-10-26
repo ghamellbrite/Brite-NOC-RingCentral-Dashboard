@@ -37,7 +37,7 @@ Data is live: the RingCentral page polls roughly every 10 seconds and the board 
 Everything is in the `CONFIG` block at the top of the script. The state mappings were inferred from live data and should be checked with **D**:
 
 - `loggedInLogStates`, `teamNos`: which agents appear (the native dashboard filters by team).
-- `queueWaitingStates`, `callbackQueuedStates`, `callbackDoneStates`, `callbackFailedStates`: contact-state numbers.
+- `inboundDirection`, `queueIgnoreStates`, `callbackQueuedStates`, `callbackDoneStates`, `callbackFailedStates`: contact-state numbers.
 - Agent state is derived from `IsAcw`, `Working`, `Available` and `OutstateDescription`; inbound vs outbound from `OutboundSkill`.
 
 When changing the script, bump `@version`.
