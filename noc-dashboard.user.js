@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Brite Contact Center Wallboard (Hali)
 // @namespace    brite-noc
-// @version      0.1.4
+// @version      0.1.5
 // @description  Full-screen contact-center wallboard overlay for RingCentral Contact Center (NICE CXone) My Dashboard, styled with the Hali design language.
 // @match        https://*.nice-incontact.com/mydashboard*
 // @run-at       document-start
@@ -110,14 +110,24 @@
   /* ======================================================================
    * Derived views
    * ==================================================================== */
+  const PHONE = 'M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z';
+  const ICONS = {
+    Available:   'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-2 15-5-5 1.4-1.4L10 14.2l7.6-7.6L19 8l-9 9z',
+    Unavailable: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H7v-2h10v2z',
+    Inbound:     `${PHONE}M21 3.4 19.6 2 15 6.6V4h-2v6h6V8h-2.6z`,
+    Outbound:    `${PHONE}M14 2v2h2.6l-5.3 5.3 1.4 1.4L18 5.4V8h2V2z`,
+    ACW:         'M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+  };
+
   function agentState(a) {
-    if (a.IsAcw) return { group: 'ACW', label: 'ACW: Wrap Up', color: C.orange };
+    if (a.IsAcw) return { group: 'ACW', label: 'Wrap Up', color: C.orange };
     if (a.Working) {
       const out = a.OutboundSkill > 0;
       return { group: out ? 'Outbound' : 'Inbound', label: out ? 'Outbound Contact' : 'Inbound Contact', color: out ? C.warning : C.purple };
     }
     if (a.Available) return { group: 'Available', label: 'Available', color: C.success };
     const why = String(a.OutstateDescription || '').trim();
+    // The reason is the useful part; "Wrap Up" as an unavailable reason reads the same as the ACW state
     return { group: 'Unavailable', label: why || 'Unavailable', color: C.danger };
   }
 
@@ -200,7 +210,7 @@
       return `<div class="trow${hot ? ' hot' : ''}">
         <div class="av">${esc(initials(r.name.replace('.', '')))}</div>
         <div class="nm"><span>${esc(r.name)}</span></div>
-        <div class="state"><i style="background:${r.st.color}"></i>${esc(r.st.label)}</div>
+        <div class="state"><svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${r.st.color}"><path d="${ICONS[r.st.group]}"/></svg>${esc(r.st.label)}</div>
         <div class="t">${mmss(r.dur)}</div></div>`;
     }).join('');
   }
@@ -225,43 +235,43 @@
     .hdr{display:flex;align-items:center;justify-content:space-between}
     .brand{display:flex;align-items:center;gap:20px}
     .brand img{height:72px}
-    h1{font:700 34px/40px var(--f);letter-spacing:-.02em}
-    .sub{font:500 13px var(--f);color:var(--subtle);letter-spacing:.02em}
+    h1{font:700 44px/50px var(--f);letter-spacing:-.02em}
+    .sub{font:500 20px var(--f);color:var(--subtle);letter-spacing:.02em}
     .pill{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-radius:9999px;background:var(--raised);font:500 14px var(--f);color:var(--subtle)}
     .pill i{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 10px var(--success)}
     .pill.stale i{background:var(--warning);box-shadow:0 0 10px var(--warning)}
     .grid{display:grid;gap:24px;min-height:0}
     .card{background:var(--raised);border-radius:28px;padding:24px;box-shadow:var(--shadow);min-height:0;display:flex;flex-direction:column;overflow:hidden}
     .card.hero{border-radius:32px;background:linear-gradient(160deg,var(--overlay),var(--raised))}
-    .eyebrow{font:600 13px var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);margin-bottom:14px}
+    .eyebrow{font:600 22px var(--f);letter-spacing:.1em;text-transform:uppercase;color:var(--subtle);margin-bottom:18px}
     .flex{display:flex;align-items:center;gap:32px;flex:1;min-height:0}
     .donut{width:var(--s);height:var(--s);border-radius:50%;display:grid;place-items:center;flex:none;position:relative}
     .donut::after{content:"";position:absolute;inset:24px;border-radius:50%;background:var(--raised)}
     .hero .donut::after{background:var(--overlay)}
     .c{position:relative;z-index:1;text-align:center}
     .c b{display:block;font:600 48px/1 var(--f)}
-    .c span{font:500 12px var(--f);color:var(--subtle);letter-spacing:.08em;text-transform:uppercase}
-    .stats{display:flex;flex:1;justify-content:space-around;gap:12px}
-    .stat{display:grid;justify-items:center;gap:6px}
-    .stat b{font:600 72px/1 var(--f);letter-spacing:-.02em}
-    .stat span{font:500 15px var(--f);color:var(--subtle);letter-spacing:.06em;text-transform:uppercase}
-    .big{font:600 96px/1 var(--f);letter-spacing:-.02em}
-    .delta{font:500 16px var(--f);color:var(--subtlest)}
+    .c span{font:500 15px var(--f);color:var(--subtle);letter-spacing:.08em;text-transform:uppercase}
+    .stats{display:flex;flex:1;justify-content:space-around;gap:8px}
+    .stat{display:grid;justify-items:center;gap:8px}
+    .stat b{font:600 84px/1 var(--f);letter-spacing:-.02em}
+    .stat span{font:500 18px var(--f);color:var(--subtle);letter-spacing:.03em;text-transform:uppercase}
+    .big{font:600 110px/1 var(--f);letter-spacing:-.02em}
+    .delta{font:500 24px var(--f);color:var(--subtlest)}
     .qhead{display:flex;align-items:baseline;gap:20px;margin-bottom:12px}
     .rows{display:grid;gap:8px;align-content:start;overflow:hidden;flex:1;min-height:0;scrollbar-width:none}
-    .qrow{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:12px;height:48px;padding:0 18px;border-radius:8px;background:var(--overlay);font:600 18px var(--f)}
-    .qn{color:var(--subtlest)} .qt{color:var(--subtle);font-weight:500} .qrow b{font:600 24px var(--f)}
-    .allclear{flex:1;display:grid;place-items:center;align-content:center;gap:12px;color:var(--success);font:600 22px var(--f)}
-    .allclear svg{width:56px;height:56px;fill:var(--success)}
-    .trow{display:grid;grid-template-columns:44px minmax(0,1.1fr) minmax(0,1.6fr) 120px;align-items:center;gap:16px;height:60px;padding:0 20px 0 12px;border-radius:8px;background:var(--overlay)}
-    .trow.hot{box-shadow:inset 4px 0 0 var(--warning)}
+    .qrow{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;height:60px;padding:0 20px;border-radius:8px;background:var(--overlay);font:600 26px var(--f)}
+    .qn{color:var(--subtlest)} .qt{color:var(--subtle);font-weight:500} .qrow b{font:600 34px var(--f)}
+    .allclear{flex:1;display:grid;place-items:center;align-content:center;gap:12px;color:var(--success);font:600 30px var(--f)}
+    .allclear svg{width:72px;height:72px;fill:var(--success)}
+    .trow{display:grid;grid-template-columns:60px minmax(0,1.15fr) minmax(0,1.5fr) 150px;align-items:center;gap:20px;height:84px;padding:0 24px 0 14px;border-radius:12px;background:var(--overlay)}
+    .trow.hot{box-shadow:inset 5px 0 0 var(--warning)}
     .trow.hot .t{color:var(--warning)}
-    .av{width:36px;height:36px;border-radius:50%;background:var(--strong);display:grid;place-items:center;font:600 13px var(--f)}
-    .nm{font:600 20px var(--f);min-width:0}
+    .av{width:52px;height:52px;border-radius:50%;background:var(--strong);display:grid;place-items:center;font:600 19px var(--f)}
+    .nm{font:600 34px var(--f);min-width:0}
     .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-    .state{display:flex;align-items:center;gap:12px;font:500 18px var(--f);color:var(--subtle);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .state i{width:12px;height:12px;border-radius:50%;flex:none}
-    .t{font:600 24px var(--f);text-align:right}
+    .state{display:flex;align-items:center;gap:14px;font:500 27px var(--f);color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .state svg{width:34px;height:34px;flex:none}
+    .t{font:600 38px var(--f);text-align:right}
     .empty{color:var(--subtlest);font:500 16px var(--f);padding:12px}
     kbd,code{font:500 14px var(--f);background:var(--raised);padding:1px 6px;border-radius:4px;color:var(--text)}
     .hint{position:absolute;right:14px;bottom:8px;font:500 11px var(--f);color:var(--subtlest);opacity:.6}
